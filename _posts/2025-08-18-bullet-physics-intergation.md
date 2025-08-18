@@ -43,33 +43,29 @@ dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphaseInterface, sol
 also you can override default Bullet allocator(which is malloc), but you should do this before any Bullet object creation:
 
 ```cpp
-// For non-aligned allocator:
+// For non-aligned allocator, malloc and free is example:
 
 void* BulletAlloc(size_t size)
 {
-	// malloc is example
 	return malloc(size);
 }
 
 void BulletFree(void* ptr)
 {
-	// free is example
 	free(ptr);
 }
 
 btAlignedAllocSetCustom(BulletAlloc, BulletFree);
 
-// For aligned allocator:
+// For aligned allocator, _aligned_malloc and _aligned_free is example:
 
 void* BulletAlignAlloc(size_t size, int alignment)
 {
-	// _aligned_malloc is example
 	return _aligned_malloc(size, alignment);
 }
 
 void BulletAlignFree(void* ptr)
 {
-	// _aligned_free is example
 	_aligned_free(ptr);
 }
 
@@ -78,3 +74,62 @@ btAlignedAllocSetCustomAligned(BulletAlignAlloc, BulletAlignFree);
 
 ### 2. Introduction to physics world
 
+After creation the physics world we need to take a look on objects, which will be live in the world.
+
+Some of types:
+* Collision Object - non-movable object. For example static level collision.
+* Rigid Body - rigid body or movable object, have mass, velocity and gravity will affect on them. For example: moving boxes
+* Ghost Objects - objects which allow to pass through self. For example: Triggers
+* Action - interface for object custom behaviour. Helpful for character controller and something non-standart which you can imagine.
+
+In my engine I used *Collision Object* for static level collision, *Rigid Body* for entities who supposed to have physics interaction and *Ghost Objects* for triggers.
+
+### N. Ghost Body
+
+Ghost body is useful class to create physics world object which is supposed to be a "filter" for others movable objects. 
+
+This is snippet for creation and adding the ghost body for trigger (please don't be scare of hungarian notation :P):
+```cpp
+m_shape = new btBoxShape(halfBoxExtends);
+
+m_ghostObject = new btPairCachingGhostObject();
+m_ghostObject->setCollisionShape(shape);
+
+// Disable contant response
+m_ghostObject->setCollisionFlags(m_ghostObject->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+
+// user pointer is pointer to the object owner entity
+m_ghostObject->setUserPointer(this);
+
+// Add to world with character filter only. Last filter can be anything, not only related to btBroadphaseProxy::CollisionFilterGroups
+g_physicsSystem.GetWorld()->addCollisionObject(m_ghostObject, btBroadphaseProxy::SensorTrigger, btBroadphaseProxy::CharacterFilter);
+```
+
+Trigger update function which is update gathered object collisions:
+
+```cpp
+void Trigger::Update(float dt)
+{
+	Entity* entity = nullptr;
+
+	int numOverlappingObjects = m_ghostObject->getNumOverlappingObjects();
+	for (int i = 0; i < numOverlappingObjects; i++)
+	{
+		btCollisionObject* collisionObject = m_ghostObject->getOverlappingObject(i);
+
+		// Use upcast function rathen dynamic_cast
+		btRigidBody* rigidBody = btRigidBody::upcast(collisionObject);
+		if (rigidBody)
+			entity = (Entity*)rigidBody->getUserPointer();
+
+		btGhostObject* ghostObject = btGhostObject::upcast(collisionObject);
+		if (ghostObject)
+			entity = (Entity*)rigidBody->getUserPointer();
+			
+		if (entity && entity->IsPlayer())
+		{
+			// do something ...
+		}
+	}
+}
+```
