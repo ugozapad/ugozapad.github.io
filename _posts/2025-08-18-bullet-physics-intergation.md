@@ -7,7 +7,7 @@ and Bullet wiki was be shutdown several years ago. So, I want to share my though
 
 ### 1. Beginning
 
-This port was written for Bullet 3.2.5 and can be [downloaded from github page](https://github.com/bulletphysics/bullet3/releases/tag/3.25)
+This post was written for Bullet 3.2.5 and can be [downloaded from github page](https://github.com/bulletphysics/bullet3/releases/tag/3.25)
 
 For first of all we need to create several objects to have physics in the our engine. Bullet use composition over inheritance so 
 we should pass several object instances for support dynamics world.
