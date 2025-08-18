@@ -10,7 +10,7 @@ and Bullet wiki was be shutdown several years ago. So, I want to share my though
 For first of all we need to create several objects to have physics in the our engine. Bullet use composition over inheritance so 
 we should pass several object instances for support dynamics world.
 
-```cpp
+```c++
 
 // Somewhere in header:
 
@@ -33,7 +33,7 @@ dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, so
 also you can override default Bullet allocator(which is malloc), but you should do this before any Bullet object creation:
 
 
-```cpp
+```c++
 
 // For non-aligned allocator:
 
