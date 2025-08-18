@@ -133,3 +133,92 @@ void Trigger::Update(float dt)
 	}
 }
 ```
+
+### N. Bullet debugging.
+
+Bullet doesn't have separate application like PhysX or Havok, so debugging is little harder. But helpfuly for us we have btIDebugDraw interface.
+Interface have methods for drawing the lines, contancts and print useful information to the output. 
+
+This is my implementation of debug drawer:
+```cpp
+class PhysicsDebugDraw : public btIDebugDraw
+{
+public:
+	PhysicsDebugDraw();
+	~PhysicsDebugDraw();
+
+	// btIDebugDraw inherit
+	void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) override;
+	void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color) override;
+	void reportErrorWarning(const char* warningString) override;
+	void draw3dText(const btVector3& location, const char* textString) override;
+	void setDebugMode(int debugMode) override;
+	int getDebugMode() const override;
+
+private:
+	int m_debugMode;
+};
+
+PhysicsDebugDraw() :
+	m_debugMode(0)
+{
+}
+
+void PhysicsDebugDraw::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
+{
+	DebugRender::DrawLine(
+		glm::vec3(from.x(), from.y(), from.z()),
+		glm::vec3(to.x(), to.y(), to.z()),
+		glm::vec3(color.x(), color.y(), color.z())
+	);
+}
+
+void PhysicsDebugDraw::drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color)
+{
+	drawLine(
+		PointOnB,
+		PointOnB + normalOnB,
+		color
+	);
+}
+
+void PhysicsDebugDraw::reportErrorWarning(const char* warningString)
+{
+	Logger::Print("%s", warningString);
+}
+
+void PhysicsDebugDraw::draw3dText(const btVector3& location, const char* textString)
+{
+	Logger::Print("%s: %s", "CPhysicsDebugDraw::draw3dText", textString);
+}
+
+void PhysicsDebugDraw::setDebugMode(int debugMode)
+{
+	m_debugMode = debugMode;
+}
+
+int PhysicsDebugDraw::getDebugMode() const
+{
+	return m_debugMode;
+}
+```
+
+Before using we should setup instance of our debug drawer to the world:
+
+```cpp
+static PhysicsDebugDraw debugDrawer;
+dynamicsWorld->setDebugDrawer(&debugDrawer);
+```
+
+After we should select drawing mode to see the Bullet world:
+
+```cpp
+int debugDrawMode = 0;
+debugDrawMode |= btIDebugDraw::DBG_DrawAabb; // Draw the axis-aligned bounding box of objects
+debugDrawMode |= btIDebugDraw::DBG_DrawWireframe; // Draw wireframe shapes of objects
+physicsDebugDraw.setDebugMode(debugDrawMode);
+
+dynamicsWorld->debugDrawWorld();
+```
+
+Don't forget to flush lines to the renderer!
