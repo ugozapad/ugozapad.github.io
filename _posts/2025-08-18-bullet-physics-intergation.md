@@ -1,7 +1,7 @@
 ## Bullet Physics intergation
 
-One of most popular physics engines is Bullet Physics, great engine in my opinion, but it lacks of proper documentation
-and Bullet wiki was be shutdown several years ago. So, I want to share my thought on intergation and using of Bullet physics engine.
+One of most popular [physics engines](https://en.wikipedia.org/wiki/Physics_engine) is [Bullet Physics](https://en.wikipedia.org/wiki/Bullet_(software)), great engine in my opinion, but it lacks of proper documentation
+and Bullet wiki was be [shutdown several years ago](https://github.com/bulletphysics/bullet3/issues/2048). So, I want to share my thought on intergation and using of Bullet physics engine.
 
 ---
 
@@ -262,3 +262,7 @@ dynamicsWorld->debugDrawWorld();
 ```
 
 Don't forget to flush lines to the renderer!
+
+### N. End
+
+Feel free to write me in [bluesky](https://bsky.app/profile/ugozapad.bsky.social)
