@@ -7,7 +7,7 @@ and Bullet wiki was be shutdown several years ago. So, I want to share my though
 
 ### 1. Beginning
 
-This port was written for Bullet 3.2.5 and can be downloaded from github page: https://github.com/bulletphysics/bullet3/releases/tag/3.25
+This port was written for Bullet 3.2.5 and can be [downloaded from github page](https://github.com/bulletphysics/bullet3/releases/tag/3.25)
 
 For first of all we need to create several objects to have physics in the our engine. Bullet use composition over inheritance so 
 we should pass several object instances for support dynamics world.
@@ -84,6 +84,46 @@ Some of types:
 
 In my engine I used *Collision Object* for static level collision, *Rigid Body* for entities who supposed to have physics interaction and *Ghost Objects* for triggers.
 
+### N. Compound shape
+
+Bullet expect that body will have only one shape, which is not flexible as PhysX with attachShape function. Instead we shouls use btCompoundShape as base/root shape for body.
+btCompoundShape is container for others shape which can be attached.
+
+This is example of btCompoundShape usage:
+```cpp
+// Create compound shape
+btCompoundShape* compoundShape = new btCompoundShape();
+
+float mass = 0.0f;
+btVector3 localInertia(0.0f, 0.0f, 0.0f);
+
+// Create body
+
+btRigidBody::btRigidBodyConstructionInfo rigidBodyCInfo(mass, nullptr, compoundShape, localInertia);
+btRigidBody* rigidBody = new btRigidBody(rigidBodyCInfo);
+rigidBody->setUserPointer(this);
+
+// Attach shapes with their own transform
+
+btTransform transform;
+transform.setIdentity();
+transform.setOrigin(btVector3(1.0f, 0.0f, 1.0f));
+
+// Create box shape
+
+btVector3 halfBoxExtends(0.2f, 0.2f, 0.2f);
+
+btBoxShape* boxShape = new btBoxShape(halfBoxExtends);
+compoundShape->addChildShape(transform, boxShape);
+
+// Create capsule shape
+
+transform.setOrigin(btVector3(0.0f, 1.0f, 1.0f));
+
+btCapsuleShape* capsuleShape = new btCapsuleShape(0.2f, 0.4f);
+compoundShape->addChildShape(transform, capsuleShape);
+```
+
 ### N. Ghost Body
 
 Ghost body is useful class to create physics world object which is supposed to be a "filter" for others movable objects. 
@@ -136,8 +176,8 @@ void Trigger::Update(float dt)
 
 ### N. Bullet debugging.
 
-Bullet doesn't have separate application like PhysX or Havok, so debugging is little harder. But helpfuly for us we have btIDebugDraw interface.
-Interface have methods for drawing the lines, contancts and print useful information to the output. 
+Bullet doesn't have separate application for debug like PhysX or Havok, so debugging is little harder. But helpfuly for us we have btIDebugDraw interface.
+Interface have methods for drawing the lines, contacts and print useful information to the output. 
 
 This is my implementation of debug drawer:
 ```cpp
