@@ -265,4 +265,3 @@ Don't forget to flush lines to the renderer!
 
 ### N. End
 
-Feel free to write me in [bluesky](https://bsky.app/profile/ugozapad.bsky.social)
